@@ -33,14 +33,21 @@ class AnimalSerializer(serializers.Serializer):
 
 
     def update(self, instance:Animal, validated_data:dict):
-        characteristics = validated_data.pop("characteristics")
+        if "sex" in validated_data:
+            validated_data.pop("sex")
+        if "group" in validated_data:
+            validated_data.pop("group")
+
+        if "characteristics" in validated_data:
+            characteristics = validated_data.pop("characteristics")
+
+            for characteristic in characteristics:
+                characteristic, _ = Characteristic.objects.get_or_create(**characteristic)
+                instance.characteristics.add(characteristic)
 
         for key, value in validated_data.items():
             setattr(instance, key, value)
             instance.save()
 
-        for characteristic in characteristics:
-            characteristic, _ = Characteristic.objects.get_or_create(**characteristic)
-            instance.characteristics.add(characteristic)
 
         return instance
